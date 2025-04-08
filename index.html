@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>함수 그래프 그리기</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      padding: 40px;
+      background-color: #f4f4f4;
+      text-align: center;
+    }
+
+    input {
+      padding: 10px;
+      width: 400px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-left: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    canvas {
+      margin-top: 40px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+
+    .tip {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📈 함수 그래프 그리기</h1>
+  <div class="tip">
+    입력 예시: <br>
+    일차 → 2x+3<br>
+    이차 → -1x*x+4x+5<br>
+    삼차 → 1x*x*x-2x*x+3x+1
+  </div>
+
+  <input type="text" id="funcInput" placeholder="함수를 입력하세요">
+  <button onclick="draw()">그래프 그리기</button>
+
+  <canvas id="graphCanvas" width="800" height="500"></canvas>
+
+  <script>
+    let chart;
+
+    function parseFunction(input) {
+      const cleaned = input
+        .replace(/\s+/g, '')
+        .replace(/([0-9])x/g, '$1*x')
+        .replace(/(^|[^\d])x/g, '$1' + '1*x');
+
+      return new Function('x', 'return ' + cleaned + ';');
+    }
+
+    function draw() {
+      const input = document.getElementById("funcInput").value;
+      let func;
+
+      try {
+        func = parseFunction(input);
+        // 테스트 실행
+        func(1);
+      } catch {
+        alert("⚠️ 수식 형식이 올바르지 않아요! 형식을 확인해 주세요.");
+        return;
+      }
+
+      const xData = [];
+      const yData = [];
+      for (let x = -10; x <= 10; x += 0.1) {
+        x = parseFloat(x.toFixed(2));
+        let y = func(x);
+        if (isFinite(y)) {
+          xData.push(x);
+          yData.push(y);
+        }
+      }
+
+      const ctx = document.getElementById('graphCanvas').getContext('2d');
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: xData,
+          datasets: [{
+            label: `y = ${input}`,
+            data: yData,
+            borderColor: 'blue',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+          }]
+        },
+        options: {
+          responsive: false,
+          scales: {
+            x: {
+              title: { display: true, text: 'x' }
+            },
+            y: {
+              title: { display: true, text: 'y' }
+            }
+          }
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
